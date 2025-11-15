@@ -1,0 +1,51 @@
+name: Build and Release WebExtension
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Read version from manifest.json
+        id: manifest
+        run: echo "version=$(jq -r '.version' manifest.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Package extension
+        run: |
+          mkdir package
+          rsync -av \
+            --exclude '.git' \
+            --exclude '.github' \
+            --exclude 'node_modules' \
+            ./ package/
+          cd package
+            zip -r "../webextension-v${{ steps.manifest.outputs.version }}.zip" .
+          cd ..
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.manifest.outputs.version }}
+          name: WebExtension v${{ steps.manifest.outputs.version }}
+          body: |
+            Automated release for version v${{ steps.manifest.outputs.version }}.
+
+            Install:
+            - Chromium (Chrome/Edge/Brave): unzip -> Load unpacked
+            - Firefox: use web-ext or sign via AMO
+            - Safari: convert via Xcode (Extension Converter)
+
+            Ensure manifest version is bumped before pushing to trigger a new release.
+          draft: false
+          prerelease: false
+          files: webextension-v${{ steps.manifest.outputs.version }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
