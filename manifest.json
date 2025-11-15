@@ -4,7 +4,12 @@
   "version": "1.0.0",
   "description": "Spotlight-style OMDb search overlay and IMDb title page helper to open vidsrc embeds.",
   "action": {
-    "default_title": "Toggle OMDb Spotlight"
+    "default_title": "Toggle OMDb Spotlight",
+    "default_icon": {
+      "16": "assets/icons/icon16.png",
+      "32": "assets/icons/icon32.png",
+      "128": "assets/icons/icon128.png"
+    }
   },
   "permissions": [
     "tabs",
@@ -51,5 +56,11 @@
       "resources": [],
       "matches": ["<all_urls>"]
     }
-  ]
+  ],
+  "icons": {
+    "16": "assets/icons/icon16.png",
+    "32": "assets/icons/icon32.png",
+    "48": "assets/icons/icon48.png",
+    "128": "assets/icons/icon128.png"
+  }
 }

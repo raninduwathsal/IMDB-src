@@ -18,34 +18,101 @@ jobs:
         id: manifest
         run: echo "version=$(jq -r '.version' manifest.json)" >> "$GITHUB_OUTPUT"
 
-      - name: Package extension
+      - name: Package MV3 (original manifest.json)
         run: |
-          mkdir package
+          set -e
+          mkdir -p package-mv3
           rsync -av \
             --exclude '.git' \
             --exclude '.github' \
             --exclude 'node_modules' \
-            ./ package/
-          cd package
-            zip -r "../webextension-v${{ steps.manifest.outputs.version }}.zip" .
+            --exclude 'package-*' \
+            --exclude 'mv2-overrides' \
+            --exclude 'mv3-overrides' \
+            --exclude 'manifest.v2.json' \
+            --exclude 'manifest.v3.json' \
+            ./ package-mv3/
+
+          # Optional: MV3-specific manifest and overrides
+          if [ -f manifest.v3.json ]; then
+            cp manifest.v3.json package-mv3/manifest.json
+          fi
+          if [ -d mv3-overrides ]; then
+            rsync -av mv3-overrides/ package-mv3/
+          fi
+
+          cd package-mv3
+            zip -r "../IMDB-src-mv3-v${{ steps.manifest.outputs.version }}.zip" .
+          cd ..
+
+      - name: Package MV2 (converted or template manifest.v2.json)
+        run: |
+          set -e
+          mkdir -p package-mv2
+          rsync -av \
+            --exclude '.git' \
+            --exclude '.github' \
+            --exclude 'node_modules' \
+            --exclude 'package-*' \
+            --exclude 'mv2-overrides' \
+            --exclude 'mv3-overrides' \
+            --exclude 'manifest.v2.json' \
+            --exclude 'manifest.v3.json' \
+            ./ package-mv2/
+
+          if [ -f manifest.v2.json ]; then
+            echo "Using manifest.v2.json"
+            cp manifest.v2.json package-mv2/manifest.json
+          else
+            echo "Converting manifest.json -> MV2"
+            jq ' .manifest_version=2
+               | (if .action then .browser_action=.action | del(.action) else . end)
+               | (if .background and .background.service_worker then .background={"scripts":[.background.service_worker],"persistent":false} else . end)
+               | (if .host_permissions then .permissions=(.permissions // []) + .host_permissions | del(.host_permissions) else . end)
+               | (if .permissions then .permissions = (.permissions - ["scripting"]) else . end)
+               | (if .web_accessible_resources and (.web_accessible_resources|type)=="array" then
+                    (if ((.web_accessible_resources[0]|type)=="object") then
+                      .web_accessible_resources = ([.web_accessible_resources[] | .resources] | add)
+                    else . end)
+                 else . end)
+               | (if .content_security_policy and (.content_security_policy|type)=="object" then
+                    .content_security_policy = (.content_security_policy.extension_pages // "")
+                 else . end)
+            ' manifest.json > package-mv2/manifest.json
+          fi
+
+          # Optional: MV2-specific overrides (e.g., background scripts)
+          if [ -d mv2-overrides ]; then
+            rsync -av mv2-overrides/ package-mv2/
+          fi
+
+          cd package-mv2
+            zip -r "../IMDB-src-mv2-v${{ steps.manifest.outputs.version }}.zip" .
           cd ..
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ steps.manifest.outputs.version }}
-          name: WebExtension v${{ steps.manifest.outputs.version }}
+          name: IMDB src v${{ steps.manifest.outputs.version }}
           body: |
             Automated release for version v${{ steps.manifest.outputs.version }}.
 
+            Artifacts:
+            - MV3: IMDB-src-mv3-v${{ steps.manifest.outputs.version }}.zip
+            - MV2: IMDB-src-mv2-v${{ steps.manifest.outputs.version }}.zip
+
             Install:
-            - Chromium (Chrome/Edge/Brave): unzip -> Load unpacked
-            - Firefox: use web-ext or sign via AMO
+            - Chromium (MV3): unzip -> Load unpacked (developer mode)
+            - Chromium (MV2): unzip -> Load unpacked (developer mode)
+            - Firefox (MV2): use web-ext or sign via AMO
             - Safari: convert via Xcode (Extension Converter)
 
             Ensure manifest version is bumped before pushing to trigger a new release.
           draft: false
           prerelease: false
-          files: webextension-v${{ steps.manifest.outputs.version }}.zip
+          files: |
+            IMDB-src-mv3-v${{ steps.manifest.outputs.version }}.zip
+            IMDB-src-mv2-v${{ steps.manifest.outputs.version }}.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
