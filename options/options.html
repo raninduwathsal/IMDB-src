@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Vidsrc/OMDb Options</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="options.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+</head>
+<body>
+  <main class="card">
+    <div class="card-header">
+      <h1>Vidsrc/OMDb Settings</h1>
+      <a class="bmc" href="https://buymeacoffee.com/raninduwathsal" target="_blank" rel="noopener noreferrer" aria-label="Buy me a coffee">☕ Buy me a coffee</a>
+    </div>
+    <form id="form">
+      <label>
+        In‑page shortcut
+        <input id="shortcut" type="text" placeholder="Ctrl+Space" />
+        <small class="note">Used to toggle the in‑page search overlay.</small>
+      </label>
+      <label>
+        OMDb API key (Optional)
+        <!-- Use password field; do not prefill the stored key -->
+        <input id="apiKey" type="password" placeholder="Enter your OMDb API key" autocomplete="off" />
+        <small class="note">Your saved key isn’t displayed. Leave blank to use the built‑in shared key.</small>
+      </label>
+      <div class="actions">
+        <button id="save" type="submit">Save</button>
+        <button id="clearKey" type="button" title="Remove saved OMDb key">Clear saved key</button>
+        <span id="status" role="status"></span>
+      </div>
+    </form>
+    <p class="hint">
+      Tip: You can change the browser‑level shortcut for toggling the overlay in the extension shortcuts UI.
+    </p>
+    <section class="instructions" aria-labelledby="omdb-instructions-title">
+      <h2 id="omdb-instructions-title">Get your own OMDb API key</h2>
+      <ol>
+        <li>Visit <a href="https://www.omdbapi.com/apikey.aspx" target="_blank" rel="noopener noreferrer">omdbapi.com/apikey.aspx</a>.</li>
+        <li>Select the Free plan and submit the form with your email.</li>
+        <li>Check your email to receive and activate your key.</li>
+        <li>Return here, enter your key above, then click Save.</li>
+      </ol>
+      <p class="note">
+        The built‑in shared key can hit its daily limit and cause searches to fail. Adding your own key ensures uninterrupted use.
+      </p>
+    </section>
+  </main>
+  <footer class="footer">
+    <a href="https://github.com/raninduwathsal" target="_blank" rel="noopener noreferrer">Made with ❤️ by Ranindu Wathsal</a>
+  </footer>
+  <script src="../lib/polyfill.js"></script>
+  <script src="../lib/storage.js"></script>
+  <script src="options.js"></script>
+ </body>
+</html>

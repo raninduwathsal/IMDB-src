@@ -1,0 +1,55 @@
+{
+  "manifest_version": 3,
+  "name": "Vidsrc Opener + OMDb Spotlight",
+  "version": "1.0.0",
+  "description": "Spotlight-style OMDb search overlay and IMDb title page helper to open vidsrc embeds.",
+  "action": {
+    "default_title": "Toggle OMDb Spotlight"
+  },
+  "permissions": [
+    "tabs",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://www.omdbapi.com/*"
+  ],
+  "background": {
+    "service_worker": "background/service-worker.js",
+    "type": "module"
+  },
+  "commands": {
+    "toggle-overlay": {
+      "suggested_key": {
+        "default": "Alt+Shift+K"
+      },
+      "description": "Toggle OMDb Spotlight overlay"
+    }
+  },
+  "options_page": "options/options.html",
+  "content_scripts": [
+    {
+      "matches": ["*://*/*"],
+      "run_at": "document_idle",
+      "js": [
+        "lib/polyfill.js",
+        "lib/storage.js",
+        "content/overlay.js"
+      ]
+    },
+    {
+      "matches": ["*://*.imdb.com/*"],
+      "run_at": "document_idle",
+      "js": [
+        "lib/polyfill.js",
+        "lib/storage.js",
+        "content/imdb.js"
+      ]
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}
